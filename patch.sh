@@ -23,8 +23,20 @@
 # Split out, so build_kernel.sh and build_deb.sh can share..
 
 git="git am"
+gitapply="git apply"
+LISTMODE=false
+# In case this is run directly, be sure $DIR is set
+test -n "${DIR}" || DIR=$PWD
 
-if [ -f ${DIR}/system.sh ] ; then
+if test "$1" = -l; then
+    # List patches instead of applying
+    git=/bin/echo
+    gitapply=/bin/echo
+    INFO_PREFIX='#'
+    LISTMODE=true
+fi
+
+if ! $LISTMODE && [ -f ${DIR}/system.sh ] ; then
 	. ${DIR}/system.sh
 fi
 
@@ -32,7 +44,11 @@ if [ "${RUN_BISECT}" ] ; then
 	git="git apply"
 fi
 
-echo "Starting patch.sh"
+info() {
+    echo $INFO_PREFIX "$*"
+}
+
+info "Starting patch.sh"
 
 git_add () {
 	git add .
@@ -51,7 +67,7 @@ cleanup () {
 }
 
 am33x () {
-	echo "dir: dma"
+	info "dir: dma"
 	${git} "${DIR}/patches/dma/0001-Without-MACH_-option-Early-printk-DEBUG_LL.patch"
 	${git} "${DIR}/patches/dma/0002-ARM-OMAP-Hack-AM33xx-clock-data-to-allow-JTAG-use.patch"
 	${git} "${DIR}/patches/dma/0003-video-st7735fb-add-st7735-framebuffer-driver.patch"
@@ -88,22 +104,22 @@ am33x () {
 	${git} "${DIR}/patches/dma/0034-ARM-dts-Add-UART4-support-to-BeagleBone.patch"
 	${git} "${DIR}/patches/dma/0035-gpevnt-Remove-__devinit.patch"
 
-	echo "dir: rtc"
+	info "dir: rtc"
 	${git} "${DIR}/patches/rtc/0001-ARM-OMAP2-am33xx-hwmod-Fix-register-offset-NULL-chec.patch"
 	${git} "${DIR}/patches/rtc/0002-rtc-OMAP-Add-system-pm_power_off-to-rtc-driver.patch"
 	${git} "${DIR}/patches/rtc/0003-ARM-dts-AM33XX-Set-pmic-shutdown-controller-for-Beag.patch"
 	${git} "${DIR}/patches/rtc/0004-ARM-dts-AM33XX-Enable-system-power-off-control-in-am.patch"
 
-	echo "dir: pinctrl"
+	info "dir: pinctrl"
 	${git} "${DIR}/patches/pinctrl/0001-i2c-pinctrl-ify-i2c-omap.c.patch"
 	${git} "${DIR}/patches/pinctrl/0002-arm-dts-AM33XX-Configure-pinmuxs-for-user-leds-contr.patch"
 	${git} "${DIR}/patches/pinctrl/0003-beaglebone-DT-set-default-triggers-for-LEDS.patch"
 	${git} "${DIR}/patches/pinctrl/0004-beaglebone-add-a-cpu-led-trigger.patch"
 
-	echo "dir: cpufreq"
+	info "dir: cpufreq"
 	${git} "${DIR}/patches/cpufreq/0001-am33xx-DT-add-commented-out-OPP-values-for-ES2.0.patch"
 
-	echo "dir: adc"
+	info "dir: adc"
 	${git} "${DIR}/patches/adc/0001-mfd-input-iio-ti_am335x_adc-use-one-structure-for-ti.patch"
 	${git} "${DIR}/patches/adc/0002-input-ti_am33x_tsc-Step-enable-bits-made-configurabl.patch"
 	${git} "${DIR}/patches/adc/0003-input-ti_am33x_tsc-Order-of-TSC-wires-made-configura.patch"
@@ -124,14 +140,14 @@ am33x () {
 	${git} "${DIR}/patches/adc/0018-input-ti_tsc-Enable-shared-IRQ-TSC.patch"
 	${git} "${DIR}/patches/adc/0019-iio-ti_am335x_adc-Add-IIO-map-interface.patch"
 
-	echo "dir: i2c"
+	info "dir: i2c"
 	${git} "${DIR}/patches/i2c/0001-pinctrl-pinctrl-single-must-be-initialized-early.patch"
 	${git} "${DIR}/patches/i2c/0002-Bone-DTS-working-i2c2-i2c3-in-the-tree.patch"
 	${git} "${DIR}/patches/i2c/0003-am33xx-Convert-I2C-from-omap-to-am33xx-names.patch"
 	${git} "${DIR}/patches/i2c/0004-am335x-evm-hack-around-i2c-node-names.patch"
 	${git} "${DIR}/patches/i2c/0005-tsl2550-fix-lux1_input-error-in-low-light.patch"
 
-	echo "dir: da8xx-fb"
+	info "dir: da8xx-fb"
 	${git} "${DIR}/patches/da8xx-fb/0001-viafb-rename-display_timing-to-via_display_timing.patch"
 	${git} "${DIR}/patches/da8xx-fb/0002-video-add-display_timing-and-videomode.patch"
 	${git} "${DIR}/patches/da8xx-fb/0003-video-add-of-helper-for-display-timings-videomode.patch"
@@ -181,7 +197,7 @@ am33x () {
 	${git} "${DIR}/patches/da8xx-fb/0047-video-da8xx-fb-setup-struct-lcd_ctrl_config-for-dt.patch"
 	${git} "${DIR}/patches/da8xx-fb/0048-video-da8xx-fb-CCF-clock-divider-handling.patch"
 
-	echo "dir: pwm"
+	info "dir: pwm"
 	${git} "${DIR}/patches/pwm/0001-pwm_backlight-Add-device-tree-support-for-Low-Thresh.patch"
 	${git} "${DIR}/patches/pwm/0002-Control-module-EHRPWM-clk-enabling.patch"
 	${git} "${DIR}/patches/pwm/0003-pwm-pwm_test-Driver-support-for-PWM-module-testing.patch"
@@ -192,11 +208,11 @@ am33x () {
 	${git} "${DIR}/patches/pwm/0008-HACK-am33xx.dtsi-turn-on-all-PWMs.patch"
 	${git} "${DIR}/patches/pwm/0009-pwm-add-sysfs-interface.patch"
 
-	echo "dir: mmc"
+	info "dir: mmc"
 	${git} "${DIR}/patches/mmc/0001-am33xx.dtsi-enable-MMC-HSPE-bit-for-all-3-controller.patch"
 	${git} "${DIR}/patches/mmc/0002-omap-hsmmc-Correct-usage-of-of_find_node_by_name.patch"
 
-	echo "dir: crypto"
+	info "dir: crypto"
 	${git} "${DIR}/patches/crypto/0001-ARM-OMAP2xxx-hwmod-Convert-SHAM-crypto-device-data-t.patch"
 	${git} "${DIR}/patches/crypto/0002-ARM-OMAP2xxx-hwmod-Add-DMA-support-for-SHAM-module.patch"
 	${git} "${DIR}/patches/crypto/0003-ARM-OMAP3xxx-hwmod-Convert-SHAM-crypto-device-data-t.patch"
@@ -232,7 +248,7 @@ am33x () {
 	${git} "${DIR}/patches/crypto/0033-crypto-omap-aes-Add-OMAP4-AM33XX-AES-Support.patch"
 	${git} "${DIR}/patches/crypto/0034-crypto-omap-aes-Add-CTR-algorithm-Support.patch"
 
-	echo "dir: 6lowpan"
+	info "dir: 6lowpan"
 	${git} "${DIR}/patches/6lowpan/0001-6lowpan-Refactor-packet-delivery-into-a-function.patch"
 	${git} "${DIR}/patches/6lowpan/0002-6lowpan-Handle-uncompressed-IPv6-packets-over-6LoWPA.patch"
 	${git} "${DIR}/patches/6lowpan/0003-wpan-whitespace-fix.patch"
@@ -257,7 +273,7 @@ am33x () {
 	${git} "${DIR}/patches/6lowpan/0022-6lowpan-fix-a-small-formatting-issue.patch"
 	${git} "${DIR}/patches/6lowpan/0023-6lowpan-use-IEEE802154_ADDR_LEN-instead-of-a-magic-n.patch"
 
-	echo "dir: capebus"
+	info "dir: capebus"
 	${git} "${DIR}/patches/capebus/0001-gpio-keys-Pinctrl-fy.patch"
 	${git} "${DIR}/patches/capebus/0002-tps65217-Allow-placement-elsewhere-than-parent-mfd-d.patch"
 	${git} "${DIR}/patches/capebus/0003-pwm-backlight-Pinctrl-fy.patch"
@@ -268,7 +284,7 @@ am33x () {
 }
 
 arm () {
-	echo "dir: arm"
+	info "dir: arm"
 	${git} "${DIR}/patches/arm/0001-deb-pkg-Simplify-architecture-matching-for-cross-bui.patch"
 	${git} "${DIR}/patches/arm/0002-Without-MACH_-option-Early-printk-DEBUG_LL.patch"
 	${git} "${DIR}/patches/arm/0003-ARM-7668-1-fix-memset-related-crashes-caused-by-rece.patch"
@@ -277,7 +293,7 @@ arm () {
 }
 
 omap () {
-	echo "dir: omap"
+	info "dir: omap"
 
 	#Fixes 800Mhz boot lockup: http://www.spinics.net/lists/linux-omap/msg83737.html
 	${git} "${DIR}/patches/omap/0001-regulator-core-if-voltage-scaling-fails-restore-orig.patch"
@@ -285,11 +301,11 @@ omap () {
 	${git} "${DIR}/patches/omap/0003-omap2-irq-fix-interrupt-latency.patch"
 	${git} "${DIR}/patches/omap/0003-mfd-omap-usb-host-Fix-clk-warnings-at-boot.patch"
 
-	echo "dir: omap/sakoman"
+	info "dir: omap/sakoman"
 	${git} "${DIR}/patches/omap_sakoman/0001-OMAP-DSS2-add-bootarg-for-selecting-svideo.patch"
 	${git} "${DIR}/patches/omap_sakoman/0002-video-add-timings-for-hd720.patch"
 
-	echo "dir: omap/beagle/expansion"
+	info "dir: omap/beagle/expansion"
 	${git} "${DIR}/patches/omap_beagle_expansion/0001-Beagle-expansion-add-buddy-param-for-expansionboard-.patch"
 	${git} "${DIR}/patches/omap_beagle_expansion/0002-Beagle-expansion-add-zippy.patch"
 	${git} "${DIR}/patches/omap_beagle_expansion/0003-Beagle-expansion-add-zippy2.patch"
@@ -302,7 +318,7 @@ omap () {
 	${git} "${DIR}/patches/omap_beagle_expansion/0010-Beagle-expansion-add-LSR-COM6L-Adapter-Board.patch"
 	${git} "${DIR}/patches/omap_beagle_expansion/0011-Beagle-expansion-LSR-COM6L-Adapter-Board-also-initia.patch"
 
-	echo "dir: omap/beagle"
+	info "dir: omap/beagle"
 	#Status: for meego guys..
 	${git} "${DIR}/patches/omap_beagle/0001-meego-modedb-add-Toshiba-LTA070B220F-800x480-support.patch"
 	${git} "${DIR}/patches/omap_beagle/0002-backlight-Add-TLC59108-backlight-control-driver.patch"
@@ -313,7 +329,7 @@ omap () {
 
 	${git} "${DIR}/patches/omap_beagle/0005-ARM-OMAP-Beagle-use-TWL4030-generic-reset-script.patch"
 
-	echo "dir: omap/panda"
+	info "dir: omap/panda"
 	#Status: not for upstream: push device tree version upstream...
 	${git} "${DIR}/patches/omap_panda/0001-panda-fix-wl12xx-regulator.patch"
 	#Status: unknown: cherry picked from linaro
@@ -321,7 +337,7 @@ omap () {
 }
 
 am33x_after () {
-	echo "dir: net"
+	info "dir: net"
 	${git} "${DIR}/patches/net/0001-am33xx-cpsw-default-to-ethernet-hwaddr-from-efuse-if.patch"
 	${git} "${DIR}/patches/net/0002-Attempted-SMC911x-BQL-patch.patch"
 	${git} "${DIR}/patches/net/0003-cpsw-Fix-interrupt-storm-among-other-things.patch"
@@ -330,7 +346,7 @@ am33x_after () {
 	${git} "${DIR}/patches/net/0006-mcp251x-add-device-tree-support.patch"
 	${git} "${DIR}/patches/net/0007-net-cpsw-fix-irq_disable-with-threaded-interrupts.patch"
 
-	echo "dir: drm"
+	info "dir: drm"
 	${git} "${DIR}/patches/drm/0001-am33xx-Add-clock-for-the-lcdc-DRM-driver.patch"
 	${git} "${DIR}/patches/drm/0002-drm-small-fix-in-drm_send_vblank_event.patch"
 	${git} "${DIR}/patches/drm/0003-drm-cma-add-debugfs-helpers.patch"
@@ -344,7 +360,7 @@ am33x_after () {
 	${git} "${DIR}/patches/drm/0011-drm-lcdc-Power-control-GPIO-support.patch"
 	${git} "${DIR}/patches/drm/0012-drm-tilcdc-Fix-scheduling-while-atomic-from-irq-hand.patch"
 
-	echo "dir: not-capebus"
+	info "dir: not-capebus"
 	${git} "${DIR}/patches/not-capebus/0001-add-dvi-pinmuxes-to-am33xx.dtsi.patch"
 	${git} "${DIR}/patches/not-capebus/0002-add-defconfig-file-to-use-as-.config.patch"
 	${git} "${DIR}/patches/not-capebus/0003-am33xx-musb-Add-OF-definitions.patch"
@@ -530,7 +546,7 @@ am33x_after () {
 	${git} "${DIR}/patches/not-capebus/0183-capes-ADC-GPIO-helper-capes.patch"
 	${git} "${DIR}/patches/not-capebus/0184-capes-RS232-Cape-support-added.patch"
 
-	echo "dir: pru"
+	info "dir: pru"
 	#Note verify: firmware/Makefile
 	#	BB-BONE-PRU-01-00A0.dtbo \
 	#	BB-BONE-PRU-02-00A0.dtbo \
@@ -554,7 +570,7 @@ am33x_after () {
 	${git} "${DIR}/patches/pru/0018-rproc-pru-Implement-a-software-defined-PWM-channel-s.patch"
 	${git} "${DIR}/patches/pru/0019-capes-PRU-PWM-channels-information.patch"
 
-	echo "dir: usb"
+	info "dir: usb"
 	${git} "${DIR}/patches/usb/0001-drivers-usb-phy-add-a-new-driver-for-usb-part-of-con.patch"
 	${git} "${DIR}/patches/usb/0002-drivers-usb-start-using-the-control-module-driver.patch"
 	${git} "${DIR}/patches/usb/0003-usb-otg-Add-an-API-to-bind-the-USB-controller-and-PH.patch"
@@ -569,13 +585,13 @@ am33x_after () {
 	${git} "${DIR}/patches/usb/0012-ARM-OMAP2-MUSB-Specify-omap4-has-mailbox.patch"
 	${git} "${DIR}/patches/usb/0013-usb-musb-avoid-stopping-the-session-in-host-mode.patch"
 
-	echo "dir: PG2"
+	info "dir: PG2"
 	${git} "${DIR}/patches/PG2/0001-beaglebone-black-1ghz-hack.patch"
 
-	echo "dir: reboot"
+	info "dir: reboot"
 	${git} "${DIR}/patches/reboot/0001-ARM-AM33xx-Add-SoC-specific-restart-hook.patch"
 
-	echo "dir: iio"
+	info "dir: iio"
 	${git} "${DIR}/patches/iio/0001-iio-common-Add-STMicroelectronics-common-library.patch"
 	${git} "${DIR}/patches/iio/0002-iio-accel-Add-STMicroelectronics-accelerometers-driv.patch"
 	${git} "${DIR}/patches/iio/0003-iio-gyro-Add-STMicroelectronics-gyroscopes-driver.patch"
@@ -588,13 +604,13 @@ am33x_after () {
 	${git} "${DIR}/patches/iio/0010-pwm-Fill-in-missing-.owner-fields.patch"
 	${git} "${DIR}/patches/iio/0011-pwm-pca9685-Fix-wrong-argument-to-set-MODE1_SLEEP-bi.patch"
 
-	echo "dir: w1"
+	info "dir: w1"
 	${git} "${DIR}/patches/w1/0001-W1-w1-gpio-switch-to-using-dev_pm_ops.patch"
 	${git} "${DIR}/patches/w1/0002-W1-w1-gpio-guard-DT-IDs-with-CONFIG_OF.patch"
 	${git} "${DIR}/patches/w1/0003-W1-w1-gpio-rework-handling-of-platform-data.patch"
 	${git} "${DIR}/patches/w1/0004-W1-w1-gpio-switch-to-using-managed-resources-devm.patch"
 
-	echo "dir: gpmc"
+	info "dir: gpmc"
 	${git} "${DIR}/patches/gpmc/0001-ARM-OMAP-Clear-GPMC-bits-when-applying-new-setting.patch"
 	${git} "${DIR}/patches/gpmc/0002-ARM-omap2-gpmc-Mark-local-scoped-functions-static.patch"
 	${git} "${DIR}/patches/gpmc/0003-ARM-omap2-gpmc-Remove-unused-gpmc_round_ns_to_ticks-.patch"
@@ -635,7 +651,7 @@ am33x_after () {
 	${git} "${DIR}/patches/gpmc/0038-omap-gpmc-Various-driver-fixes.patch"
 	${git} "${DIR}/patches/gpmc/0039-gpmc-Add-DT-node-for-gpmc-on-am33xx.patch"
 
-	echo "dir: mxt"
+	info "dir: mxt"
 	${git} "${DIR}/patches/mxt/0001-CHROMIUM-Input-atmel_mxt_ts-refactor-i2c-error-handl.patch"
 	${git} "${DIR}/patches/mxt/0002-CHROMIUM-Input-atmel_mxt_ts-register-input-device-be.patch"
 	${git} "${DIR}/patches/mxt/0003-CHROMIUM-Input-atmel_mxt_ts-refactor-input-device-cr.patch"
@@ -694,20 +710,20 @@ am33x_after () {
 	${git} "${DIR}/patches/mxt/0056-CHROMIUM-Input-atmel_mxt_ts-Disable-T9-on-mxt_stop.patch"
 	${git} "${DIR}/patches/mxt/0057-CHROMIUM-Input-atmel_mxt_ts-Set-T9-in-mxt_resume-bas.patch"
 
-	echo "dir: ssd130x"
+	info "dir: ssd130x"
 	${git} "${DIR}/patches/ssd130x/0001-video-ssd1307fb-Add-support-for-SSD1306-OLED-control.patch"
 	${git} "${DIR}/patches/ssd130x/0002-ssd1307fb-Rework-the-communication-functions.patch"
 	${git} "${DIR}/patches/ssd130x/0003-ssd1307fb-Speed-up-the-communication-with-the-contro.patch"
 	${git} "${DIR}/patches/ssd130x/0004-ssd1307fb-Make-use-of-horizontal-addressing-mode.patch"
 	${git} "${DIR}/patches/ssd130x/0005-SSD1307fb-1Hz-8Hz-defio-updates.patch"
 
-	echo "dir: build"
+	info "dir: build"
 	#${git} "${DIR}/patches/build/0001-ARM-force-march-armv7a-for-thumb2-builds-http-lists..patch"
 	#${git} "${DIR}/patches/build/0002-headers_install-Fix-build-failures-on-deep-directory.patch"
 	#${git} "${DIR}/patches/build/0003-libtraceevent-Remove-hard-coded-include-to-usr-local.patch"
 	${git} "${DIR}/patches/build/0004-Make-single-.dtb-targets-also-with-DTC_FLAGS.patch"
 
-	echo "dir: hdmi"
+	info "dir: hdmi"
 	${git} "${DIR}/patches/hdmi/0001-video-Add-generic-HDMI-infoframe-helpers.patch"
 	${git} "${DIR}/patches/hdmi/0002-BeagleBone-Black-TDA998x-Initial-HDMI-Audio-support.patch"
 	${git} "${DIR}/patches/hdmi/0003-Clean-up-some-formating-and-debug-in-Davinci-MCASP-d.patch"
@@ -740,7 +756,7 @@ am33x_after () {
 	${git} "${DIR}/patches/audio/0002-ASoc-Davinci-EVM-Config-12MHz-CLK-for-AIC3x-Codec.patch"
 	${git} "${DIR}/patches/audio/0003-ASoc-McASP-Lift-Reset-on-CLK-Dividers-when-RX-TX.patch"
 
-	echo "dir: resetctrl"
+	info "dir: resetctrl"
 	${git} "${DIR}/patches/resetctrl/0001-boneblack-Remove-default-pinmuxing-for-MMC1.patch"
 	${git} "${DIR}/patches/resetctrl/0002-capemgr-Implement-cape-priorities.patch"
 	${git} "${DIR}/patches/resetctrl/0003-rstctl-Reset-control-subsystem.patch"
@@ -753,7 +769,7 @@ am33x_after () {
 	${git} "${DIR}/patches/resetctrl/0010-bone-common-dtsi-remove-reset-cape.patch"
 	${git} "${DIR}/patches/resetctrl/0011-mmc-add-missing-select-RSTCTL-in-MMC_OMAP.patch"
 
-	echo "dir: camera"
+	info "dir: camera"
 	${git} "${DIR}/patches/camera/0001-soc_camera-QL-mt9l112-camera-driver-for-the-beaglebo.patch"
 	${git} "${DIR}/patches/camera/0002-capes-Add-BB-BONE-CAM3-cape.patch"
 	${git} "${DIR}/patches/camera/0003-cssp_camera-Correct-license-identifier.patch"
@@ -765,7 +781,7 @@ am33x_after () {
 	${git} "${DIR}/patches/camera/0009-Debugging-camera-stuff.patch"
 	${git} "${DIR}/patches/camera/0010-cssp_camera-Make-it-work-with-Beaglebone-black.patch"
 
-	echo "dir: resources"
+	info "dir: resources"
 	${git} "${DIR}/patches/resources/0001-bone-capemgr-Introduce-simple-resource-tracking.patch"
 	${git} "${DIR}/patches/resources/0002-capes-Add-resources-to-capes.patch"
 	${git} "${DIR}/patches/resources/0003-capes-Update-most-of-the-capes-with-resource-definit.patch"
@@ -792,17 +808,17 @@ am33x_after () {
 #	${git} "${DIR}/patches/resources/0023-capemgr-Retry-loading-when-failure-to-find-firmware.patch"
 	${git} "${DIR}/patches/resources/0024-arm-bone-dts-add-CD-for-mmc1.patch"
 
-	echo "dir: pmic"
+	info "dir: pmic"
 	${git} "${DIR}/patches/pmic/0001-tps65217-Enable-KEY_POWER-press-on-AC-loss-PWR_BUT.patch"
 	${git} "${DIR}/patches/pmic/0002-dt-bone-common-Add-interrupt-for-PMIC.patch"
 
-	echo "dir: pps"
+	info "dir: pps"
 	${git} "${DIR}/patches/pps/0001-drivers-pps-clients-pps-gpio.c-convert-to-module_pla.patch"
 	${git} "${DIR}/patches/pps/0002-drivers-pps-clients-pps-gpio.c-convert-to-devm_-help.patch"
 	${git} "${DIR}/patches/pps/0003-pps-gpio-add-device-tree-binding-and-support.patch"
 	${git} "${DIR}/patches/pps/0004-pps-gpio-add-pinctrl-suppport.patch"
 
-	echo "dir: leds"
+	info "dir: leds"
 	${git} "${DIR}/patches/leds/0001-leds-leds-pwm-Convert-to-use-devm_get_pwm.patch"
 	${git} "${DIR}/patches/leds/0002-leds-leds-pwm-Preparing-the-driver-for-device-tree-s.patch"
 	${git} "${DIR}/patches/leds/0003-leds-leds-pwm-Simplify-cleanup-code.patch"
@@ -810,7 +826,7 @@ am33x_after () {
 	${git} "${DIR}/patches/leds/0005-leds-leds-pwm-Defer-led_pwm_set-if-PWM-can-sleep.patch"
 	${git} "${DIR}/patches/leds/0006-leds-pwm-Enable-compilation-on-this-version-of-the-k.patch"
 
-	echo "dir: capes"
+	info "dir: capes"
 	${git} "${DIR}/patches/capes/0001-capes-Add-bacon-cape.patch"
 	${git} "${DIR}/patches/capes/0002-cape-bacon-Cosmetic-change-of-the-adc-helper-name.patch"
 	${git} "${DIR}/patches/capes/0003-cape-bacon-educational-edition.patch"
@@ -843,14 +859,14 @@ am33x_after () {
 	${git} "${DIR}/patches/capes/0030-capes-add-bone_eqep-from-https-github.com-Teknoman11.patch"
 	${git} "${DIR}/patches/capes/0031-Adding-Logibone-to-cape-support-list.patch"
 
-	echo "dir: proto"
+	info "dir: proto"
 	${git} "${DIR}/patches/proto/0001-add-new-default-pinmux-based-on-Proto-Cape.patch"
 
-	echo "dir: logibone"
+	info "dir: logibone"
 	${git} "${DIR}/patches/logibone/0001-Instering-Logibone-driver-into-kernel.patch"
 	${git} "${DIR}/patches/logibone/0002-Adding-DTS-support-for-Logibone.patch"
 
-	echo "dir: fixes"
+	info "dir: fixes"
 	${git} "${DIR}/patches/fixes/0001-sync-don-t-block-the-flusher-thread-waiting-on-IO.patch"
 	${git} "${DIR}/patches/fixes/0002-USB-Fix-USB-device-disconnects-on-resume.patch"
 	${git} "${DIR}/patches/fixes/0003-beaglebone-switch-uSD-to-4-bit-mode.patch"
@@ -860,7 +876,7 @@ am33x_after () {
 	${git} "${DIR}/patches/fixes/0007-omap-RS485-support-by-Michael-Musset.patch"
 	${git} "${DIR}/patches/fixes/0008-deb-pkg-sync-with-v3.14.patch"
 
-	echo "dir: firmware"
+	info "dir: firmware"
 	#http://arago-project.org/git/projects/?p=am33x-cm3.git;a=summary
 	#http://arago-project.org/git/projects/?p=am33x-cm3.git;a=commit;h=750362868d914702086187096ec2c67b68eac101
 	#
@@ -872,31 +888,31 @@ am33x_after () {
 }
 
 saucy () {
-	echo "dir: saucy"
+	info "dir: saucy"
 	${git} "${DIR}/patches/saucy/0001-saucy-disable-Werror-pointer-sign.patch"
 	${git} "${DIR}/patches/saucy/0002-saucy-disable-stack-protector.patch"
 }
 
 machinekit () {
-	echo "dir: machinekit"
+	info "dir: machinekit"
 	${git} "${DIR}/patches/machinekit/0001-Add-dir-changeable-property-to-gpio-of-helper.patch"
 	${git} "${DIR}/patches/machinekit/0002-ADS1115.patch"
 }
 
 sgx () {
-	echo "dir: sgx"
+	info "dir: sgx"
 	${git} "${DIR}/patches/sgx/0001-OpenGl-added-SGX-device-to-device-tree.patch"
 	${git} "${DIR}/patches/sgx/0002-OpenGL-apply-SGX-patch-from-TI-forum-FIXES-crash-aft.patch"
 	${git} "${DIR}/patches/sgx/0003-OpenGL-fixed-IRQ-offset.patch"
 }
 
 backports () {
-	echo "dir: backports"
+	info "dir: backports"
 	${git} "${DIR}/patches/backports/0001-backport-v3.13.7-tpm_i2c_atmel.c.patch"
 }
 
 xenomai () {
-	echo "dir: xenomai - ipipe"
+	info "dir: xenomai - ipipe"
 	KDIR="$(pwd)"
 
 # Not needed now that working ipipe patch is in official xenomai 2.6.3 release
@@ -907,27 +923,29 @@ xenomai () {
 	cd ${KDIR}
 
 	# Apply pre patch so xenomai ipipe patch applies cleanly
-	git apply "${DIR}/ignore/xenomai/ksrc/arch/arm/patches/beaglebone/ipipe-core-3.8.13-beaglebone-pre.patch"
+	${gitapply} "${DIR}/ignore/xenomai/ksrc/arch/arm/patches/beaglebone/ipipe-core-3.8.13-beaglebone-pre.patch"
 
 	# Apply ipipe patch
-	git apply "${DIR}/ignore/xenomai/ksrc/arch/arm/patches/ipipe-core-3.8.13-arm-3.patch"
+	${gitapply} "${DIR}/ignore/xenomai/ksrc/arch/arm/patches/ipipe-core-3.8.13-arm-3.patch"
 
 	# Apply post patch
-	git apply "${DIR}/ignore/xenomai/ksrc/arch/arm/patches/beaglebone/ipipe-core-3.8.13-beaglebone-post.patch"
+	${gitapply} "${DIR}/ignore/xenomai/ksrc/arch/arm/patches/beaglebone/ipipe-core-3.8.13-beaglebone-post.patch"
 
 	# Apply THUMB2 fix
-	git apply "${DIR}/patches/xenomai/0001-Fix-relocation-truncated-to-fit-R_ARM_THM_JUMP19-err.patch"
+	${gitapply} "${DIR}/patches/xenomai/0001-Fix-relocation-truncated-to-fit-R_ARM_THM_JUMP19-err.patch"
 
-	echo "dir: xenomai - prepare_kernel"
-	# Add the rest of xenomai to the kernel
-	OUTPATCH=$(mktemp "${DIR}/ignore/xenomai-patch.XXXXXXXXXX") || { echo "Failed to create temp file"; exit 1; }
+	info "dir: xenomai - prepare_kernel"
+	if ! $LISTMODE; then
+	    # Add the rest of xenomai to the kernel
+	    OUTPATCH=$(mktemp "${DIR}/ignore/xenomai-patch.XXXXXXXXXX") || { echo "Failed to create temp file" 1>&2; exit 1; }
 
-	# generate the xenomai patch
-	# doing it this way fixes the dangling symlinks problem under /usr/src/linux-headers-*
-	${DIR}/ignore/xenomai/scripts/prepare-kernel.sh --linux=./ --arch=arm --outpatch="${OUTPATCH}"
+	    # generate the xenomai patch
+	    # doing it this way fixes the dangling symlinks problem under /usr/src/linux-headers-*
+	    ${DIR}/ignore/xenomai/scripts/prepare-kernel.sh --linux=./ --arch=arm --outpatch="${OUTPATCH}"
+	fi
 
 	# and apply it
-	git apply "${OUTPATCH}"
+	${gitapply} "${OUTPATCH}"
 
 	# rm -f "${OUTPATCH}"
 
@@ -945,4 +963,4 @@ sgx
 backports
 xenomai
 
-echo "patch.sh ran successful"
+info "patch.sh ran successful"
